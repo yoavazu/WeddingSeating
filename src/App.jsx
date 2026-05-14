@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { fetchTableData, addGuestToTable, removeGuestFromTable, addTable } from './services/googleSheetsService';
 import TableCard from './components/TableCard';
 import TableModal from './components/TableModal';
-import { Loader2, AlertCircle, PlusCircle } from 'lucide-react';
+import AllGuestsModal from './components/AllGuestsModal';
+import { Loader2, AlertCircle, PlusCircle, Search } from 'lucide-react';
 import './App.css';
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
   const [selectedTable, setSelectedTable] = useState(null);
   const [totalWeddingGuests, setTotalWeddingGuests] = useState(0);
   const [isAddingTable, setIsAddingTable] = useState(false);
+  const [isShowingAllGuests, setIsShowingAllGuests] = useState(false);
   const [newTableName, setNewTableName] = useState('');
   const [newTableNumber, setNewTableNumber] = useState('');
   const [isSubmittingTable, setIsSubmittingTable] = useState(false);
@@ -90,9 +92,14 @@ function App() {
       <header className="app-header">
         <h1 className="title-font">סידורי הושבה</h1>
         <div className="header-actions">
-          <div className="wedding-stats glass-panel">
+          <div 
+            className="wedding-stats glass-panel clickable-stats" 
+            onClick={() => setIsShowingAllGuests(true)}
+            title="הצג את כל המוזמנים"
+          >
             <span>סה"כ מוזמנים:</span>
             <strong>{totalWeddingGuests}</strong>
+            <Search size={16} className="stats-search-icon" />
           </div>
           <button className="add-table-btn outline" onClick={() => setIsAddingTable(true)}>
             <PlusCircle size={18} />
@@ -172,6 +179,13 @@ function App() {
           onClose={() => setSelectedTable(null)} 
           onAddGuest={handleAddGuest}
           onRemoveGuest={handleRemoveGuest}
+        />
+      )}
+
+      {isShowingAllGuests && (
+        <AllGuestsModal 
+          tables={tables}
+          onClose={() => setIsShowingAllGuests(false)}
         />
       )}
 
