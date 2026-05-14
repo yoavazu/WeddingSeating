@@ -88,13 +88,23 @@ function parseSheetData(data) {
       }
     }
 
+    let maxCapacity = null;
+    // Look for "שולחן של" in the rows below the guests
+    for (let r = guestsStartRowIndex + 17; r < Math.min(guestsStartRowIndex + 30, data.length); r++) {
+      if (data[r] && data[r][colIndex] === 'שולחן של') {
+        maxCapacity = parseInt(data[r][colIndex + 1], 10) || null;
+        break;
+      }
+    }
+
     tables.push({
       id: `table-${tableNumber}-${colIndex}`,
       number: tableNumber,
       name: tableName ? tableName.trim() : '',
       colIndex: colIndex + 1, // 1-indexed for Apps Script (Column B is 2)
       guests: guests,
-      totalGuests: totalGuests
+      totalGuests: totalGuests,
+      maxCapacity: maxCapacity
     });
   }
 

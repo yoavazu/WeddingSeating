@@ -15,7 +15,7 @@ export default function TableCard({ table, onClick }) {
       <div className="table-card-footer">
         <div className="guest-count">
           <Users size={18} />
-          <span>{table.totalGuests} אורחים</span>
+          <span>{table.totalGuests}{table.maxCapacity ? ` / ${table.maxCapacity}` : ''} אורחים</span>
         </div>
       </div>
     </div>

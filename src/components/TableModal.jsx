@@ -62,7 +62,7 @@ export default function TableModal({ table, onClose, onAddGuest, onRemoveGuest }
 
         <div className="guests-list-container">
           <div className="guests-list-header">
-            <h3>רשימת אורחים ({table.totalGuests} סה"כ)</h3>
+            <h3>רשימת אורחים ({table.totalGuests}{table.maxCapacity ? ` / ${table.maxCapacity}` : ''} סה"כ)</h3>
           </div>
           
           {table.guests.length === 0 ? (
