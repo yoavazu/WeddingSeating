@@ -1,0 +1,212 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(62, 74, 61, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  border-radius: 16px;
+  padding: 2rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  left: 1rem; /* RTL means left is close button usually */
+  background: transparent;
+  border: none;
+  color: var(--wood-brown);
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background-color: rgba(139, 109, 92, 0.1);
+  transform: rotate(90deg);
+}
+
+.modal-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  margin: 0 0 0.5rem 0;
+  color: var(--text-color);
+}
+
+.subtitle {
+  color: var(--wood-brown);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.error-message {
+  background-color: #fcebeb;
+  color: #d32f2f;
+  padding: 0.8rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.guests-list-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 1.5rem;
+  padding-left: 0.5rem; /* For scrollbar in RTL */
+}
+
+.guests-list-header h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--accent-dark);
+  font-style: italic;
+  padding: 2rem 0;
+}
+
+.guests-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.guest-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.guest-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.guest-name {
+  font-weight: 500;
+}
+
+.guest-count-badge {
+  background-color: var(--primary-light);
+  color: white;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.icon-btn {
+  padding: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.add-guest-form {
+  background-color: rgba(255, 255, 255, 0.6);
+  padding: 1.2rem;
+  border-radius: 12px;
+  border: 1px solid var(--primary-light);
+}
+
+.add-guest-form h4 {
+  margin: 0 0 1rem 0;
+  color: var(--primary-color);
+}
+
+.form-group {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.form-group input {
+  padding: 0.6em 0.8em;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  background: white;
+}
+
+.form-group input[type="text"] {
+  flex-grow: 1;
+}
+
+.form-group input[type="number"] {
+  width: 70px;
+  text-align: center;
+}
+
+.form-group button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.form-group button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .form-group {
+    flex-direction: column;
+  }
+  
+  .form-group input[type="number"] {
+    width: 100%;
+  }
+}
