@@ -63,9 +63,21 @@ function parseSheetData(data) {
 
     const guests = [];
     let totalGuests = 0;
+    
+    // Find the row for 'סך הכל' to know where the guests list ends
+    let totalRowIndex = -1;
+    for (let r = guestsStartRowIndex; r < data.length; r++) {
+      if (data[r] && (data[r][1] === 'סך הכל' || data[r][colIndex] === 'סך הכל')) {
+        totalRowIndex = r;
+        break;
+      }
+    }
+    
+    // If we couldn't find 'סך הכל', fallback to looking 40 rows down
+    const endRowIndex = totalRowIndex !== -1 ? totalRowIndex : Math.min(guestsStartRowIndex + 40, data.length);
 
-    // Guests are from guestsStartRowIndex up to guestsStartRowIndex + 16 (17 rows total)
-    for (let rowIndex = guestsStartRowIndex; rowIndex <= guestsStartRowIndex + 16; rowIndex++) {
+    // Guests are from guestsStartRowIndex up to the endRowIndex
+    for (let rowIndex = guestsStartRowIndex; rowIndex < endRowIndex; rowIndex++) {
       if (data[rowIndex]) {
         const guestName = data[rowIndex][colIndex];
         const guestCountStr = data[rowIndex][colIndex + 1];
@@ -73,9 +85,6 @@ function parseSheetData(data) {
         if (guestName && guestName.trim() !== '') {
           const count = parseInt(guestCountStr, 10) || 1;
 
-          // Calculate the absolute row index for Google Sheets (assuming guests always start at Row 10 in the sheet)
-          // Google Sheets rows are 1-indexed. The guests start at absolute row 10.
-          // The offset in the array is rowIndex - guestsStartRowIndex.
           const absoluteSheetRow = 10 + (rowIndex - guestsStartRowIndex);
 
           guests.push({
@@ -90,7 +99,7 @@ function parseSheetData(data) {
 
     let maxCapacity = null;
     // Look for "שולחן של" in the rows below the guests
-    for (let r = guestsStartRowIndex + 17; r < Math.min(guestsStartRowIndex + 30, data.length); r++) {
+    for (let r = endRowIndex; r < Math.min(endRowIndex + 5, data.length); r++) {
       if (data[r] && data[r][colIndex] === 'שולחן של') {
         maxCapacity = parseInt(data[r][colIndex + 1], 10) || null;
         break;
