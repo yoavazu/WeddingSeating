@@ -12,17 +12,24 @@ function App() {
   const [error, setError] = useState(null);
   const [selectedTable, setSelectedTable] = useState(null);
   const [totalWeddingGuests, setTotalWeddingGuests] = useState(0);
-  const [isAddingTable, setIsAddingTable] = useState(false);
   const [isShowingAllGuests, setIsShowingAllGuests] = useState(false);
-  const [newTableName, setNewTableName] = useState('');
-  const [newTableNumber, setNewTableNumber] = useState('');
-  const [isSubmittingTable, setIsSubmittingTable] = useState(false);
 
   const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
       const data = await fetchTableData();
+      
+      const hasReserve1 = data.some(t => t.name === 'רזרבה 1' || t.number == 'רזרבה 1');
+      const hasReserve2 = data.some(t => t.name === 'רזרבה 2' || t.number == 'רזרבה 2');
+      
+      if (!hasReserve1) {
+        data.push({ id: 'reserve-1', number: 'רזרבה 1', name: 'רזרבה 1', colIndex: -1, guests: [], totalGuests: 0, maxCapacity: null });
+      }
+      if (!hasReserve2) {
+        data.push({ id: 'reserve-2', number: 'רזרבה 2', name: 'רזרבה 2', colIndex: -2, guests: [], totalGuests: 0, maxCapacity: null });
+      }
+      
       setTables(data);
       
       const total = data.reduce((sum, table) => sum + table.totalGuests, 0);
@@ -40,23 +47,65 @@ function App() {
   }, []);
 
   const handleAddGuest = async (colIndex, guestName, guestCount) => {
-    await addGuestToTable(colIndex, guestName, guestCount);
-    // Reload data to reflect changes
-    await loadData();
-    // Update selected table reference so modal updates
+    if (colIndex < 0) {
+      alert("כדי להוסיף אורחים לשולחן רזרבה, יש ליצור עבורו עמודה ב-Google Sheet קודם.");
+      return;
+    }
+
+    const count = parseInt(guestCount, 10) || 1;
+    const tempGuest = { name: guestName, count: count, tempId: `temp-${Date.now()}` };
+
+    // Optimistic UI update
+    setTables(prev => prev.map(t => {
+      if (t.colIndex === colIndex) {
+        return { ...t, guests: [...t.guests, tempGuest], totalGuests: t.totalGuests + count };
+      }
+      return t;
+    }));
     setSelectedTable(prev => {
-      const updated = tables.find(t => t.id === prev.id);
-      return updated || prev;
+      if (!prev || prev.colIndex !== colIndex) return prev;
+      return { ...prev, guests: [...prev.guests, tempGuest], totalGuests: prev.totalGuests + count };
     });
+    setTotalWeddingGuests(prev => prev + count);
+
+    try {
+      await addGuestToTable(colIndex, guestName, guestCount);
+      await loadData();
+    } catch (err) {
+      console.error(err);
+      alert('אירעה שגיאה. הנתונים מתרעננים...');
+      await loadData();
+    }
   };
 
   const handleRemoveGuest = async (colIndex, guestName) => {
-    await removeGuestFromTable(colIndex, guestName);
-    await loadData();
+    if (colIndex < 0) return;
+
+    let removedCount = 0;
+    
+    // Optimistic UI update
+    setTables(prev => prev.map(t => {
+      if (t.colIndex === colIndex) {
+        const guestToRemove = t.guests.find(g => g.name === guestName);
+        if (guestToRemove) removedCount = guestToRemove.count;
+        return { ...t, guests: t.guests.filter(g => g.name !== guestName), totalGuests: t.totalGuests - removedCount };
+      }
+      return t;
+    }));
     setSelectedTable(prev => {
-      const updated = tables.find(t => t.id === prev.id);
-      return updated || prev;
+      if (!prev || prev.colIndex !== colIndex) return prev;
+      return { ...prev, guests: prev.guests.filter(g => g.name !== guestName), totalGuests: prev.totalGuests - removedCount };
     });
+    setTotalWeddingGuests(prev => prev - removedCount);
+
+    try {
+      await removeGuestFromTable(colIndex, guestName);
+      await loadData();
+    } catch (err) {
+      console.error(err);
+      alert('אירעה שגיאה. הנתונים מתרעננים...');
+      await loadData();
+    }
   };
 
   // When data is refreshed, we need to update the selectedTable if it's open
@@ -69,23 +118,7 @@ function App() {
     }
   }, [tables, loading]);
 
-  const handleAddTable = async (e) => {
-    e.preventDefault();
-    if (!newTableName.trim() || !newTableNumber.trim()) return;
-    
-    setIsSubmittingTable(true);
-    try {
-      await addTable(newTableName, newTableNumber);
-      setNewTableName('');
-      setNewTableNumber('');
-      setIsAddingTable(false);
-      await loadData();
-    } catch (err) {
-      alert(err.message || 'אירעה שגיאה בהוספת השולחן');
-    } finally {
-      setIsSubmittingTable(false);
-    }
-  };
+
 
   return (
     <div className="app-container">
@@ -101,51 +134,8 @@ function App() {
             <strong>{totalWeddingGuests}</strong>
             <Search size={16} className="stats-search-icon" />
           </div>
-          <button className="add-table-btn outline" onClick={() => setIsAddingTable(true)}>
-            <PlusCircle size={18} />
-            הוסף שולחן
-          </button>
         </div>
       </header>
-
-      {isAddingTable && (
-        <div className="modal-overlay" onClick={() => setIsAddingTable(false)}>
-          <div className="modal-content glass-panel animate-fade-in" onClick={e => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setIsAddingTable(false)}>
-              ×
-            </button>
-            <div className="modal-header">
-              <h2>הוספת שולחן חדש</h2>
-            </div>
-            <form className="add-table-form" onSubmit={handleAddTable}>
-              <div className="form-group-col">
-                <label>שם השולחן</label>
-                <input 
-                  type="text" 
-                  value={newTableName}
-                  onChange={e => setNewTableName(e.target.value)}
-                  placeholder="לדוגמה: משפחת כהן"
-                  required
-                />
-              </div>
-              <div className="form-group-col">
-                <label>מספר השולחן</label>
-                <input 
-                  type="number" 
-                  value={newTableNumber}
-                  onChange={e => setNewTableNumber(e.target.value)}
-                  placeholder="לדוגמה: 18"
-                  required
-                />
-              </div>
-              <button type="submit" disabled={isSubmittingTable} style={{ marginTop: '1rem', width: '100%', justifyContent: 'center' }}>
-                {isSubmittingTable ? <Loader2 size={18} className="spin" /> : <PlusCircle size={18} />}
-                הוסף שולחן
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
 
       <main className="main-content">
         {loading && tables.length === 0 ? (
