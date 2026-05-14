@@ -41,15 +41,17 @@ function doPost(e) {
         }
       }
       
-      if (targetRow !== -1) {
-        sheet.getRange(targetRow, colIndex).setValue(guestName);
-        sheet.getRange(targetRow, colIndex + 1).setValue(guestCount);
-        return ContentService.createTextOutput(JSON.stringify({ success: true, message: "Guest added successfully." }))
-          .setMimeType(ContentService.MimeType.JSON);
-      } else {
-        return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Table is full." }))
-          .setMimeType(ContentService.MimeType.JSON);
+      if (targetRow === -1) {
+        // If table is full, insert a new row before the totalRow to make space
+        sheet.insertRowBefore(totalRow);
+        targetRow = totalRow;
+        totalRow++; // The total row has shifted down
       }
+      
+      sheet.getRange(targetRow, colIndex).setValue(guestName);
+      sheet.getRange(targetRow, colIndex + 1).setValue(guestCount);
+      return ContentService.createTextOutput(JSON.stringify({ success: true, message: "Guest added successfully." }))
+        .setMimeType(ContentService.MimeType.JSON);
     } 
     else if (action === 'remove') {
       
